@@ -1,0 +1,142 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger: 
+ - main
+
+pool:
+  vmImage: ubuntu-latest
+
+variables:
+  storagerg: 'ap_rg2'
+  storageAccountName: 'terraform524'
+  containerName: 'container52'
+  devbkkey: 'dev.terraform.tfstate'
+  prodbkkey: 'prod.terraform.tfstate'
+  vmImageName: 'ubuntu-latest'
+  pythonVersion: '3.11'
+  projectRoot: $(System.DefaultWorkingDirectory)
+
+stages:
+  - stage: devinitialize
+    jobs:
+      - job: validate
+        continueOnError: false
+        steps:
+          - task: TerraformInstaller@1
+            displayName: tfinstall
+            inputs:
+              terraformVersion: 'latest'
+          - task: TerraformTaskV4@4
+            displayName: init
+            inputs:
+              provider: 'azurerm'
+              command: 'init'
+              workingDirectory: '$(System.DefaultWorkingDirectory)/Dev'
+              backendServiceArm: 'dev and prod'
+              backendAzureRmResourceGroupName: '$(storagerg)'
+              backendAzureRmStorageAccountName: '$(storageAccountName)'
+              backendAzureRmContainerName: '$(containerName)'
+              backendAzureRmKey: '$(devbkkey)'
+          - task: TerraformTaskV4@4
+            displayName: Validate
+            inputs:
+              provider: 'azurerm'
+              command: 'validate'
+  - stage: provisiondev
+    condition: succeeded('devinitialize')
+    dependsOn: devinitialize
+    jobs:
+      - job: apply
+        steps: 
+          - task: TerraformInstaller@1
+            displayName: tfinstall
+            inputs:
+              terraformVersion: 'latest'
+          - task: TerraformTaskV4@4
+            displayName: init
+            inputs:
+              provider: 'azurerm'
+              command: 'init'
+              workingDirectory: '$(System.DefaultWorkingDirectory)/Dev'
+              backendServiceArm: 'dev and prod'
+              backendAzureRmResourceGroupName: '$(storagerg)'
+              backendAzureRmStorageAccountName: '$(storageAccountName)'
+              backendAzureRmContainerName: '$(containerName)'
+              backendAzureRmKey: '$(devbkkey)'
+          - task: TerraformTaskV4@4
+            displayName: plan
+            inputs:
+              provider: 'azurerm'
+              command: 'plan'
+              workingDirectory: '$(System.DefaultWorkingDirectory)/Dev'
+              environmentServiceNameAzureRM: 'dev and prod'
+          - task: TerraformTaskV4@4
+            displayName: apply
+            inputs:
+              provider: 'azurerm'
+              command: 'apply'
+              workingDirectory: '$(System.DefaultWorkingDirectory)/Dev'
+              environmentServiceNameAzureRM: 'dev and prod'
+  - stage: prodinitialize
+    jobs:
+      - job: validate
+        continueOnError: false
+        steps:
+          - task: TerraformInstaller@1
+            displayName: tfinstall
+            inputs:
+              terraformVersion: 'latest'
+          - task: TerraformTaskV4@4
+            displayName: init
+            inputs:
+              provider: 'azurerm'
+              command: 'init'
+              workingDirectory: '$(System.DefaultWorkingDirectory)/Prod'
+              backendServiceArm: 'dev and prod'
+              backendAzureRmResourceGroupName: '$(storagerg)'
+              backendAzureRmStorageAccountName: '$(storageAccountName)'
+              backendAzureRmContainerName: '$(containerName)'
+              backendAzureRmKey: '$(prodbkkey)'
+          - task: TerraformTaskV4@4
+            displayName: Validate
+            inputs:
+              provider: 'azurerm'
+              command: 'validate'
+  - stage: provisionprod
+    condition: succeeded('prodinitialize')
+    dependsOn: prodinitialize
+    jobs:
+      - job: apply
+        steps: 
+          - task: TerraformInstaller@1
+            displayName: tfinstall
+            inputs:
+              terraformVersion: 'latest'
+          - task: TerraformTaskV4@4
+            displayName: init
+            inputs:
+              provider: 'azurerm'
+              command: 'init'
+              workingDirectory: '$(System.DefaultWorkingDirectory)/Prod'
+              backendServiceArm: 'dev and prod'
+              backendAzureRmResourceGroupName: '$(storagerg)'
+              backendAzureRmStorageAccountName: '$(storageAccountName)'
+              backendAzureRmContainerName: '$(containerName)'
+              backendAzureRmKey: '$(prodbkkey)'
+          - task: TerraformTaskV4@4
+            displayName: plan
+            inputs:
+              provider: 'azurerm'
+              command: 'plan'
+              workingDirectory: '$(System.DefaultWorkingDirectory)/Prod'
+              environmentServiceNameAzureRM: 'dev and prod'
+          - task: TerraformTaskV4@4
+            displayName: apply
+            inputs:
+              provider: 'azurerm'
+              command: 'apply'
+              workingDirectory: '$(System.DefaultWorkingDirectory)/Prod'
+              environmentServiceNameAzureRM: 'dev and prod' 
