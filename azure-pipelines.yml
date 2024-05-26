@@ -11,7 +11,7 @@ pool:
 
 variables:
   storagerg: 'ap_rg2'
-  storageAccountName: 'terraform524'
+  storageAccountName: 'terraform525'
   containerName: 'container52'
   devbkkey: 'dev.terraform.tfstate'
   prodbkkey: 'prod.terraform.tfstate'
