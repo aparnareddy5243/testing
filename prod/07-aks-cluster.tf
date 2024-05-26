@@ -106,6 +106,6 @@ azure_active_directory_role_based_access_control {
   }
 
   tags = {
-    Environment = "dev"
+    Environment = "prod"
   }
 }
