@@ -12,7 +12,7 @@ pool:
 variables:
   storagerg: 'ap_rg2'
   storageAccountName: 'terraform525'
-  containerName: 'container52'
+  containerName: 'kubecontainer1'
   devbkkey: 'dev.terraform.tfstate'
   prodbkkey: 'prod.terraform.tfstate'
   vmImageName: 'ubuntu-latest'
