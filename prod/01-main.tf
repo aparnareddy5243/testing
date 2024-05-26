@@ -31,7 +31,7 @@ terraform {
     resource_group_name   = "ap_rg2"
     storage_account_name  = "terraform525"
     container_name        = "kubcontainer1"
-    key                   = "dev.terraform.tfstate"
+    key                   = "prod.terraform.tfstate"
   }  
 }
 
